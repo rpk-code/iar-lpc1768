@@ -1,0 +1,1 @@
+target_sources(${BOARD_NAME} PRIVATE src/main.c)
