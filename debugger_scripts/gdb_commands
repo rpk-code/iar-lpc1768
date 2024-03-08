@@ -1,0 +1,6 @@
+file build/iar_lpc1768.elf
+target remote localhost:2331
+monitor reset
+load
+break main
+

@@ -1,0 +1,5 @@
+ExitOnError 1
+r
+h
+loadfile "build/iar_lpc1768.elf"
+qc
