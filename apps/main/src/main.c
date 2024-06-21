@@ -10,12 +10,15 @@
 /************************************
  * INCLUDES
  ************************************/
+#include "stdio.h"
+
 // OS
 #include "FreeRTOS.h"
 #include "task.h"
 
 // APPS
 #include "hbeat.h"
+#include "serial.h"
 
 /************************************
  * EXTERN VARIABLES
@@ -44,12 +47,21 @@
 /************************************
  * STATIC FUNCTIONS
  ************************************/
+static void display_system_info(void) {
+    printf("******** System Info ********\n");
+    printf("MCU: LPC1768\n");
+    printf("OS: FreeRTOS %s\n", tskKERNEL_VERSION_NUMBER);
+    printf("*****************************\n");
+}
 
 /************************************
  * GLOBAL FUNCTIONS
  ************************************/
 int main(void)
 {
+    serial_init();
+    display_system_info();
+
     // Initialize apps
     hbeat_init();
 
