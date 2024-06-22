@@ -58,7 +58,7 @@ flash: build_docker_image all
 	@docker run $(DOCKER_COMMON_ARGS) $(DOCKER_IMAGE_NAME) ./debugger_scripts/flash.sh
 .PHONY: flash
 
-debug: build_docker_image
+debug: build_docker_image all
 	@docker run $(DOCKER_COMMON_ARGS) $(DOCKER_IMAGE_NAME) ./debugger_scripts/debugserver.sh &
 	@sleep 2
 	@docker exec -it ${DOCKER_CONTAINER_NAME} ./debugger_scripts/debug.sh
