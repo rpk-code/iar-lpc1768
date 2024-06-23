@@ -109,7 +109,7 @@
 
 // <e> ENET (Ethernet Interface) [Driver_ETH_MAC0]
 // <i> Configuration settings for Driver_ETH_MAC0 in component ::Drivers:Ethernet MAC
-#define RTE_ENET                        0
+#define RTE_ENET                        1
 
 
 //   <h> RMII (Reduced Media Independent Interface)

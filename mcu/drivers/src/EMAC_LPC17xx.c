@@ -81,11 +81,11 @@ extern ARM_DRIVER_ETH_MAC Driver_ETH_MAC0;
 void ENET_IRQHandler (void);
 
 /* Timeouts */
-#define PHY_TIMEOUT         500U        /* PHY Register access timeout in us  */
+#define PHY_TIMEOUT         5U          /* PHY Register access timeout in ms  */
 
 /* EMAC Memory Buffer configuration for 16K Ethernet RAM */
 #define NUM_RX_BUF          4U          /* 0x1800 for Rx (4*1536=6.0K)        */
-#define NUM_TX_BUF          3U          /* 0x1200 for Tx (3*1536=4.6K)        */
+#define NUM_TX_BUF          4U          /* 0x1800 for Tx (4*1536=6.0K)        */
 #define ETH_BUF_SIZE        1536U       /* ETH Receive/Transmit buffer size   */
 
 /* Ethernet Pin definitions */
@@ -1145,8 +1145,14 @@ static int32_t PHY_Read (uint8_t phy_addr, uint8_t reg_addr, uint16_t *data) {
     tick = osKernelSysTick();
 #endif
     do {
+#if   defined(RTE_FREERTOS)
+      vTaskDelay(pdMS_TO_TICKS(1));
+      tick++;
+#endif
       if ((LPC_EMAC->MIND & MIND_BUSY) == 0U) break;
-#if   defined(RTE_CMSIS_RTOS2)
+#if   defined(RTE_FREERTOS)
+    } while(tick < PHY_TIMEOUT);
+#elif   defined(RTE_CMSIS_RTOS2)
     } while ((osKernelGetSysTimerCount() - tick) < (((uint64_t)PHY_TIMEOUT * osKernelGetSysTimerFreq()) / 1000000U));
 #elif defined(RTE_CMSIS_RTOS)
     } while ((osKernelSysTick() - tick) < osKernelSysTickMicroSec(PHY_TIMEOUT));
@@ -1216,8 +1222,14 @@ static int32_t PHY_Write (uint8_t phy_addr, uint8_t reg_addr, uint16_t data) {
     tick = osKernelSysTick();
 #endif
     do {
+#if   defined(RTE_FREERTOS)
+      vTaskDelay(pdMS_TO_TICKS(1));
+      tick++;
+#endif
       if ((LPC_EMAC->MIND & MIND_BUSY) == 0U) break;
-#if   defined(RTE_CMSIS_RTOS2)
+#if   defined(RTE_FREERTOS)
+    } while(tick < PHY_TIMEOUT);
+#elif   defined(RTE_CMSIS_RTOS2)
     } while ((osKernelGetSysTimerCount() - tick) < (((uint64_t)PHY_TIMEOUT * osKernelGetSysTimerFreq()) / 1000000U));
 #elif defined(RTE_CMSIS_RTOS)
     } while ((osKernelSysTick() - tick) < osKernelSysTickMicroSec(PHY_TIMEOUT));

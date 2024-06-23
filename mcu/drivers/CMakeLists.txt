@@ -1,4 +1,6 @@
-target_compile_definitions(${BOARD_NAME} PRIVATE LPC175x_6x)
+target_compile_definitions(${BOARD_NAME}
+    PRIVATE LPC175x_6x
+    PRIVATE RTE_FREERTOS)
 
 target_include_directories(${BOARD_NAME}
     PRIVATE inc
@@ -13,3 +15,5 @@ target_sources(${BOARD_NAME}
 target_sources(${BOARD_NAME} PRIVATE src/GPDMA_LPC17xx.c)
 
 target_sources(${BOARD_NAME} PRIVATE src/UART_LPC17xx.c)
+
+target_sources(${BOARD_NAME} PRIVATE src/EMAC_LPC17xx.c)

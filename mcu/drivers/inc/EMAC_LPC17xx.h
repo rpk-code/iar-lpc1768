@@ -33,7 +33,10 @@
 #include "RTE_Device.h"
 #include "RTE_Components.h"
 
-#if       defined(RTE_CMSIS_RTOS2)
+#if       defined(RTE_FREERTOS)
+#include "FreeRTOS.h"
+#include "task.h"
+#elif       defined(RTE_CMSIS_RTOS2)
 #include "cmsis_os2.h"
 #elif     defined(RTE_CMSIS_RTOS)
 #include "cmsis_os.h"
