@@ -17,3 +17,4 @@ target_sources(${BOARD_NAME} PRIVATE src/GPDMA_LPC17xx.c)
 target_sources(${BOARD_NAME} PRIVATE src/UART_LPC17xx.c)
 
 target_sources(${BOARD_NAME} PRIVATE src/EMAC_LPC17xx.c)
+target_sources(${BOARD_NAME} PRIVATE src/EPHY_KS8721.c)
