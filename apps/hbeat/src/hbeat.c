@@ -39,7 +39,7 @@
 
 #define HBEAT_TASK_NAME     "hbeat"
 #define HBEAT_TASK_PRIO     (1U)
-#define HBEAT_STACK_SIZE    (8U)
+#define HBEAT_STACK_SIZE    (32U)
 
 /************************************
  * PRIVATE TYPEDEFS

@@ -23,4 +23,5 @@ target_compile_definitions(${BOARD_NAME} PRIVATE __USE_CMSIS=CMSIS_CORE_LPC17xx)
 
 add_subdirectory(mcu)
 add_subdirectory(os)
+add_subdirectory(frip)
 add_subdirectory(apps)

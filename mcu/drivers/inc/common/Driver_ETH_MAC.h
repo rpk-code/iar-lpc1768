@@ -210,6 +210,11 @@ typedef struct _ARM_ETH_MAC_TIME {
   \return      \ref execution_status
 */
 /**
+  \fn          uint32_t ARM_ETH_MAC_GetTxFrame (void)
+  \brief       Get pointer to last transmitted frame.
+  \return      \ref pointer to frame
+*/
+/**
   \fn          int32_t ARM_ETH_MAC_GetTxFrameTime (ARM_ETH_MAC_TIME *time)
   \brief       Get time of transmitted Ethernet frame.
   \param[in]   time  Pointer to time structure for data to read into
@@ -293,9 +298,10 @@ typedef struct _ARM_DRIVER_ETH_MAC {
   int32_t                  (*SetMacAddress)   (const ARM_ETH_MAC_ADDR *ptr_addr);                    ///< Pointer to \ref ARM_ETH_MAC_SetMacAddress : Set Ethernet MAC Address.
   int32_t                  (*SetAddressFilter)(const ARM_ETH_MAC_ADDR *ptr_addr, uint32_t num_addr); ///< Pointer to \ref ARM_ETH_MAC_SetAddressFilter : Configure Address Filter.
   int32_t                  (*SendFrame)       (const uint8_t *frame, uint32_t len, uint32_t flags);  ///< Pointer to \ref ARM_ETH_MAC_SendFrame : Send Ethernet frame.
-  int32_t                  (*ReadFrame)       (      uint8_t *frame, uint32_t len);                  ///< Pointer to \ref ARM_ETH_MAC_ReadFrame : Read data of received Ethernet frame.
+  uint32_t                 (*ReadFrame)       (      uint8_t *frame, uint32_t len);                  ///< Pointer to \ref ARM_ETH_MAC_ReadFrame : Read data of received Ethernet frame.
   uint32_t                 (*GetRxFrameSize)  (void);                                                ///< Pointer to \ref ARM_ETH_MAC_GetRxFrameSize : Get size of received Ethernet frame.
   int32_t                  (*GetRxFrameTime)  (ARM_ETH_MAC_TIME *time);                              ///< Pointer to \ref ARM_ETH_MAC_GetRxFrameTime : Get time of received Ethernet frame.
+  uint32_t                 (*GetTxFrame)      (void);                                                ///< Pointer to \ref ARM_ETH_MAC_GetTxFrame : Get pointer to last transmitted frame.
   int32_t                  (*GetTxFrameTime)  (ARM_ETH_MAC_TIME *time);                              ///< Pointer to \ref ARM_ETH_MAC_GetTxFrameTime : Get time of transmitted Ethernet frame.
   int32_t                  (*ControlTimer)    (uint32_t control, ARM_ETH_MAC_TIME *time);            ///< Pointer to \ref ARM_ETH_MAC_ControlTimer : Control Precision Timer.
   int32_t                  (*Control)         (uint32_t control, uint32_t arg);                      ///< Pointer to \ref ARM_ETH_MAC_Control : Control Ethernet Interface.

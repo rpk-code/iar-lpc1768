@@ -71,7 +71,10 @@
  *    - Initial release
  */
 
+#include "assert.h"
+
 #include "EMAC_LPC17xx.h"
+#include "FreeRTOS_IP.h"
 
 extern ARM_DRIVER_ETH_MAC Driver_ETH_MAC0;
 
@@ -194,8 +197,13 @@ static            TX_Desc Tx_Desc[NUM_TX_BUF];
 static            TX_Stat Tx_Stat[NUM_TX_BUF];
 
 /* EMAC local DMA buffers. */
+#if ipconfigZERO_COPY_RX_DRIVER == ipconfigDISABLE
 static uint32_t rx_buf[NUM_RX_BUF][ETH_BUF_SIZE>>2];
+#endif
+
+#if ipconfigZERO_COPY_TX_DRIVER == ipconfigDISABLE
 static uint32_t tx_buf[NUM_TX_BUF][ETH_BUF_SIZE>>2];
+#endif
 
 /* Local variables */
 static EMAC_CTRL  emac_control = { 0 };
@@ -264,7 +272,13 @@ static void init_rx_desc (void) {
   uint32_t i;
 
   for (i = 0U; i < NUM_RX_BUF; i++) {
+#if ipconfigZERO_COPY_RX_DRIVER == ipconfigDISABLE
     Rx_Desc[i].Packet  = (uint8_t *)&rx_buf[i];
+#else
+    NetworkBufferDescriptor_t *desc = pxGetNetworkBufferWithDescriptor(ETH_BUF_SIZE, 0);
+    assert(desc);
+    Rx_Desc[i].Packet  = desc->pucEthernetBuffer;
+#endif
     Rx_Desc[i].Ctrl    = RCTRL_INT | (ETH_BUF_SIZE-1);
     Rx_Stat[i].Info    = 0U;
     Rx_Stat[i].HashCRC = 0U;
@@ -288,7 +302,11 @@ static void init_tx_desc (void) {
   uint32_t i;
 
   for (i = 0U; i < NUM_TX_BUF; i++) {
+#if ipconfigZERO_COPY_TX_DRIVER == ipconfigDISABLE
     Tx_Desc[i].Packet = (uint8_t *)&tx_buf[i];
+#else
+    Tx_Desc[i].Packet = NULL;
+#endif
     Tx_Desc[i].Ctrl   = 0U;
     Tx_Stat[i].Info   = 0U;
   }
@@ -773,8 +791,7 @@ static int32_t SetAddressFilter (const ARM_ETH_MAC_ADDR *ptr_addr, uint32_t num_
   \return      \ref execution_status
 */
 static int32_t SendFrame (const uint8_t *frame, uint32_t len, uint32_t flags) {
-  uint8_t *dst;
-  uint32_t idx;
+  uint32_t pidx, cidx;
 
   if (!frame || !len) {
     /* Invalid parameters */
@@ -786,10 +803,18 @@ static int32_t SendFrame (const uint8_t *frame, uint32_t len, uint32_t flags) {
     return ARM_DRIVER_ERROR;
   }
 
-  dst = emac.frame_end;
-  idx = LPC_EMAC->TxProduceIndex;
+  pidx = LPC_EMAC->TxProduceIndex;
+  cidx = LPC_EMAC->TxConsumeIndex;
+  if (cidx == 0) cidx = NUM_TX_BUF;
+
+  if (pidx == (cidx - 1)) {
+    return ARM_DRIVER_ERROR;
+  }
+
+#if ipconfigZERO_COPY_TX_DRIVER == ipconfigDISABLE
+  uint8_t *dst = emac.frame_end;
   if (dst == NULL) {
-    dst = Tx_Desc[idx].Packet;
+    dst = Tx_Desc[pidx].Packet;
     emac.frame_len = len;
   }
   else {
@@ -812,15 +837,19 @@ static int32_t SendFrame (const uint8_t *frame, uint32_t len, uint32_t flags) {
     emac.frame_end = dst;
     return ARM_DRIVER_OK;
   }
+#else
+  emac.frame_len = len;
+  Tx_Desc[pidx].Packet = (uint8_t*)frame;
+#endif
 
-  Tx_Desc[idx].Ctrl = (emac.frame_len-1U) | (TCTRL_INT | TCTRL_LAST);
+  Tx_Desc[pidx].Ctrl = (emac.frame_len-1U) | (TCTRL_INT | TCTRL_LAST);
 
   emac.frame_end = NULL;
   emac.frame_len = 0U;
 
   /* Start frame transmission. */
-  if (++idx == NUM_TX_BUF) idx = 0U;
-  LPC_EMAC->TxProduceIndex = idx;
+  if (++pidx == NUM_TX_BUF) pidx = 0U;
+  LPC_EMAC->TxProduceIndex = pidx;
 
   return ARM_DRIVER_OK;
 }
@@ -834,15 +863,19 @@ static int32_t SendFrame (const uint8_t *frame, uint32_t len, uint32_t flags) {
                  - value >= 0: number of data bytes read
                  - value < 0: error occurred, value is execution status as defined with \ref execution_status 
 */
-static int32_t ReadFrame (uint8_t *frame, uint32_t len) {
+static uint32_t ReadFrame (uint8_t *frame, uint32_t len) {
   uint8_t const *src;
   uint32_t idx;
-  int32_t cnt = (int32_t)len;
+#if ipconfigZERO_COPY_RX_DRIVER == ipconfigDISABLE
+  uint32_t cnt = (int32_t)len;
 
   if (!frame && len) {
     /* Invalid parameters */
     return ARM_DRIVER_ERROR_PARAMETER;
   }
+#else
+  (void)len;
+#endif
 
   if (!(emac.flags & EMAC_FLAG_POWER)) {
     /* Driver not yet powered */
@@ -851,6 +884,8 @@ static int32_t ReadFrame (uint8_t *frame, uint32_t len) {
 
   idx = LPC_EMAC->RxConsumeIndex;
   src = (uint8_t const *)Rx_Desc[idx].Packet;
+
+#if ipconfigZERO_COPY_RX_DRIVER == ipconfigDISABLE
   /* Fast-copy data to packet buffer */
   for ( ; len > 7U; frame += 8U, src += 8U, len -= 8U) {
     __UNALIGNED_UINT32_WRITE(&frame[0], __UNALIGNED_UINT32_READ(&src[0]));
@@ -861,12 +896,19 @@ static int32_t ReadFrame (uint8_t *frame, uint32_t len) {
     __UNALIGNED_UINT16_WRITE(&frame[0], __UNALIGNED_UINT16_READ(&src[0]));
   }
   if (len > 0U) frame[0] = src[0];
+#else
+  Rx_Desc[idx].Packet = frame;
+#endif
 
   if (++idx == NUM_RX_BUF) idx = 0U;
   /* Release frame from EMAC buffer */
   LPC_EMAC->RxConsumeIndex = idx;
 
+#if ipconfigZERO_COPY_RX_DRIVER == ipconfigDISABLE
   return (cnt);
+#else
+  return (uint32_t)src;
+#endif
 }
 
 /**
@@ -933,6 +975,25 @@ static int32_t GetRxFrameTime (ARM_ETH_MAC_TIME *time) {
 }
 
 /**
+  \fn          uint32_t GetTxFrame (void)
+  \brief       Get pointer to last transmitted frame.
+  \return      \ref pointer to frame
+*/
+static uint32_t GetTxFrame (void) {
+  uint32_t idx;
+
+  if (!(emac.flags & EMAC_FLAG_POWER)) {
+    /* Driver not yet powered */
+    return (0U);
+  }
+
+  idx = LPC_EMAC->TxConsumeIndex;
+  if (idx == 0) idx = NUM_TX_BUF;
+
+  return (uint32_t)Tx_Desc[idx - 1].Packet;
+}
+
+/**
   \fn          int32_t GetTxFrameTime (ARM_ETH_MAC_TIME *time)
   \brief       Get time of transmitted Ethernet frame.
   \param[in]   time  Pointer to time structure for data to read into
@@ -971,7 +1032,7 @@ static int32_t Control (uint32_t control, uint32_t arg) {
       switch (arg & ARM_ETH_MAC_SPEED_Msk) {
         case ARM_ETH_MAC_SPEED_10M:
           break;
-        case ARM_ETH_SPEED_100M:
+        case ARM_ETH_MAC_SPEED_100M:
 #if (RTE_ENET_RMII)
           supp |= SUPP_SPEED;
 #endif
@@ -1256,6 +1317,7 @@ ARM_DRIVER_ETH_MAC Driver_ETH_MAC0 = {
   ReadFrame,
   GetRxFrameSize,
   GetRxFrameTime,
+  GetTxFrame,
   GetTxFrameTime,
   ControlTimer,
   Control,

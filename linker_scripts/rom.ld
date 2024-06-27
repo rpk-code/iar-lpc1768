@@ -112,6 +112,7 @@ SECTIONS
        *(.bss.$RamAHB32)
        *(.bss.$RAM2.*)
        *(.bss.$RamAHB32.*)
+       *(.bss.freertos.heap)
        . = ALIGN (. != 0 ? 4 : 1) ; /* avoid empty segment */
        PROVIDE(__end_bss_RAM2 = .) ;
        PROVIDE(__end_bss_RamAHB32 = .) ;

@@ -70,7 +70,7 @@
 
 /* PHY Timing Parameters */
 #define PHY_RESET_TOUT      10          /* Soft reset timeout in ms        */
-#define PHY_ANEG_TOUT       100         /* Auto negotiation timeout in ms  */
+#define PHY_ANEG_TOUT       400         /* Auto negotiation timeout in ms  */
 
 /* PHY Driver State Flags */
 #define PHY_INIT            0x01U       /* Driver initialized                */
