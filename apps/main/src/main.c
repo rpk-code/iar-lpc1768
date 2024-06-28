@@ -19,6 +19,7 @@
 // APPS
 #include "hbeat.h"
 #include "serial.h"
+#include "lcd_drv.h"
 
 /************************************
  * EXTERN VARIABLES
@@ -61,6 +62,9 @@ int main(void)
 {
     serial_init();
     display_system_info();
+
+    // Initialize drivers
+    lcd_drv_init();
 
     // Initialize apps
     hbeat_init();
