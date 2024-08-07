@@ -13,3 +13,5 @@ target_sources(${BOARD_NAME}
 target_sources(${BOARD_NAME} PRIVATE src/GPDMA_LPC17xx.c)
 
 target_sources(${BOARD_NAME} PRIVATE src/UART_LPC17xx.c)
+
+target_sources(${BOARD_NAME} PRIVATE src/SSP_LPC17xx.c)

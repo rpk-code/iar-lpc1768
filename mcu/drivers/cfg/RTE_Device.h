@@ -753,12 +753,12 @@
 
 // <e> SSP0 (Synchronous Serial Port 0) [Driver_SPI0]
 // <i> Configuration settings for Driver_SPI0 in component ::Drivers:SPI
-#define RTE_SSP0                        0
+#define RTE_SSP0                        1
 
 //   <h> Pin Configuration
 //     <o> SSP0_SSEL <0=>Not used <1=>P0_16 <2=>P1_21
 //     <i> Slave Select for SSP0
-#define   RTE_SSP0_SSEL_PIN_SEL         1
+#define   RTE_SSP0_SSEL_PIN_SEL         2
 #if      (RTE_SSP0_SSEL_PIN_SEL == 0)
 #define   RTE_SSP0_SSEL_PIN_EN          0
 #elif    (RTE_SSP0_SSEL_PIN_SEL == 1)
@@ -778,7 +778,7 @@
 
 //     <o> SSP0_SCK <0=>P0_15 <1=>P1_20
 //     <i> Serial clock for SSP0
-#define   RTE_SSP0_SCK_PIN_SEL          0
+#define   RTE_SSP0_SCK_PIN_SEL          1
 #if      (RTE_SSP0_SCK_PIN_SEL == 0)
   #define RTE_SSP0_SCK_PORT             0
   #define RTE_SSP0_SCK_BIT              15
@@ -793,7 +793,7 @@
 
 //     <o> SSP0_MISO <0=>Not used <1=>P0_17 <2=>P1_23
 //     <i> Master In Slave Out for SSP0
-#define   RTE_SSP0_MISO_PIN_SEL         0
+#define   RTE_SSP0_MISO_PIN_SEL         2
 #if      (RTE_SSP0_MISO_PIN_SEL == 0)
   #define RTE_SSP0_MISO_PIN_EN          0
 #elif    (RTE_SSP0_MISO_PIN_SEL == 1)
@@ -813,7 +813,7 @@
 
 //     <o> SSP0_MOSI <0=>Not used <1=>P0_18 <2=>P1_24
 //     <i> Master Out Slave In for SSP0
-#define   RTE_SSP0_MOSI_PIN_SEL         0
+#define   RTE_SSP0_MOSI_PIN_SEL         2
 #if      (RTE_SSP0_MOSI_PIN_SEL == 0)
   #define RTE_SSP0_MOSI_PIN_EN          0
 #elif    (RTE_SSP0_MOSI_PIN_SEL == 1)
